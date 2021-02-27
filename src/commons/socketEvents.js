@@ -1,0 +1,8 @@
+ const JOIN = 'JOIN'
+ const RECEIVE_MESSAGE = 'RECEIVE_MESSAGE'
+ const SEND_MESSAGE = 'SEND_MESSAGE'
+module.exports={
+    JOIN,
+    RECEIVE_MESSAGE,
+    SEND_MESSAGE
+}

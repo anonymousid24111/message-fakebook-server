@@ -43,6 +43,8 @@
         messages.appendChild(item);
         window.scrollTo(0, document.body.scrollHeight);
       });
+      socket.emit('JOIN', '60332a55a1801725142a0ec0')
+      socket.on('RECEIVE_MESSAGE', data=>console.log("DATA:",data))
     </script>
   </body>
 </html>
