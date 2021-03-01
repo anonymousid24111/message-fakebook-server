@@ -1,4 +1,4 @@
-const { RECEIVE_MESSAGE } = require('../commons/socketEvents');
+const { RECEIVE_MESSAGE, NEW_CONVERSATION } = require('../commons/socketEvents');
 const conversationModel = require('../models/conversation.model')
 const userModel = require('../models/user.model')
 const join = (io, socket, data) => {
@@ -6,25 +6,46 @@ const join = (io, socket, data) => {
     socket.join(data);
 }
 
+const outRoom = (io, socket, data) => {
+    console.log(`${socket.id} out ${data}`);
+    socket.leave(data);
+}
+
 const sendMessage = async (io, socket, { message = {}, conversationId = "", receiver, sender }) => {
     console.log(socket.id, "emit event send")
     try {
         if (conversationId) {
-            await conversationModel.findByIdAndUpdate(conversationId, {
+            let created = Date.now()
+            const newConversation = await conversationModel.findByIdAndUpdate(conversationId, {
                 $push: {
                     messages: {
                         ...message,
                         sender,
-                        created: Date()
+                        created
+                    }
+                },
+                $set: {
+                    last_message: {
+                        ...message,
+                        is_read: 0,
+                        sender,
+                        created
                     }
                 }
+            }, { new: true }).populate({
+                path: "members",
+                select: "avatar username email"
             })
             console.log("receiver", receiver)
-            io.to(receiver).emit(RECEIVE_MESSAGE, {
+
+            socket.to(conversationId).emit(RECEIVE_MESSAGE, {
                 ...message,
                 sender,
-                conversationId
+                conversationId,
+                created
             })
+            io.to(receiver).to(sender).emit(NEW_CONVERSATION, newConversation)
+
         } else {
 
             const newConversation = new conversationModel({
@@ -57,7 +78,7 @@ const sendMessage = async (io, socket, { message = {}, conversationId = "", rece
                     }
                 }), newConversation.save()])
             }
-            io.to(receiver).emit(RECEIVE_MESSAGE, {
+            io.to(receiver).emit(NEW_CONVERSATION, {
                 ...message,
                 sender,
                 conversationId
@@ -71,5 +92,6 @@ const sendMessage = async (io, socket, { message = {}, conversationId = "", rece
 
 module.exports = {
     join,
-    sendMessage
+    sendMessage,
+    outRoom
 }

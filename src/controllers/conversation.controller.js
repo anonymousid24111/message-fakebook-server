@@ -46,8 +46,20 @@ const getAllConversation = async (req, res) => {
             populate: {
                 path: "members",
                 select: "username avatar email"
+            },
+            options: {
+                sort: {
+                    updatedAt: -1
+                }
             }
         })
+        // console.log(conversations)
+        if (!conversations) res.json(statusResponse.OK)
+        conversations.map(e => {
+            let { messages } = conversations
+
+        })
+
         return res.json({
             ...statusResponse.OK,
             data: [
@@ -82,15 +94,27 @@ const getConversation = async (req, res) => {
             userModel.findById(id).select("username email avatar conversations").populate("conversations")])
         if (!meInfo || !user_id) return res.json(statusResponse.NOT_FOUND)
         const { conversations } = meInfo
-
+        let conversationsJson = conversations && conversations.find(conversation => conversation?.members.some(x => x == user_id))
         // console.log(userInfo)
-        return res.json({
+        res.json({
             ...statusResponse.OK,
             data: {
                 member: userInfo,
-                conversations: conversations&&conversations.find(conversation => conversation?.members.some(x => x == user_id))
+                conversations: conversationsJson
             }
         })
+
+        const result = await conversationModel.findOneAndUpdate({
+            _id: conversationsJson?._id,
+            "last_message.sender": {
+                $ne: id
+            }
+        }, {
+            $set: {
+                "last_message.is_read": 1
+            }
+        })
+        console.log('result', result)
     } catch (error) {
         console.log(error?.message)
         res.json(statusResponse.UNKNOWN)

@@ -2,6 +2,17 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const conversationSchema = new mongoose.Schema({
+  last_message: {
+    is_read: {
+      type: Number,
+      default: 1
+    },
+    kind: String,
+    content: String,
+    status: String,
+    created: Date,
+    sender: { type: Schema.Types.ObjectId, ref: 'user' },
+  },
   members: [
     { type: Schema.Types.ObjectId, ref: 'user' }
   ],
@@ -16,8 +27,8 @@ const conversationSchema = new mongoose.Schema({
     type: String,
     default: "false"
   },
-},{
-  timestamps:{}
+}, {
+  timestamps: {}
 });
 
 const conversation = mongoose.model("conversation", conversationSchema);
