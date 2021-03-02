@@ -12,11 +12,21 @@ const io = require('socket.io')(http, {
 });
 const port = process.env.PORT || 3000;
 
+
+// var cloudinary = require('cloudinary').v2
+// cloudinary.config({
+//   cloud_name: 'api-fakebook',
+//   api_key: '492541787796645',
+//   api_secret: '5GtH9r9-DMPUvf9RLP1WN8kMY6U'
+// });
+
+
 const userRoute = require('./src/routes/user.route')
 const tokenRoute = require('./src/routes/token.route')
 const conversationRoute = require('./src/routes/conversation.route');
 const friendRoute = require('./src/routes/friend.route');
 const searchRoute = require('./src/routes/search.route');
+const uploadRoute = require('./src/routes/upload.route')
 
 const mongoose = require("mongoose");
 const socketRoute = require('./src/routes/socket.route');
@@ -45,9 +55,9 @@ app.use('/token', tokenRoute);
 app.use('/conversation', conversationRoute);
 app.use('/friend', friendRoute)
 app.use('/search', searchRoute)
+app.use('/upload', uploadRoute)
 
-
-io.on('connection',socket=> socketRoute(io, socket));
+io.on('connection', socket => socketRoute(io, socket));
 
 http.listen(port, () => {
   console.log(`Socket.IO server running at http://localhost:${port}/`);

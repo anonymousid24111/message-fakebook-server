@@ -1,5 +1,6 @@
 const statusResponse = require('../commons/statusResponse');
 const userModel = require('../models/user.model')
+const { streamUpload } = require("../services/upload.service")
 
 const signup = async (req, res) => {
     const { email, password } = req.body;
@@ -24,38 +25,14 @@ const getInfoUser = async (req, res) => {
     const { id } = req.decoded
     try {
         if (!user_id) return res.json(statusResponse.PARAMS_MISS)
-        const userInfo=  await userModel.findById(user_id);
-        if(!userInfo) return res.json(statusResponse.NOT_FOUND)
-        const { username, email, birthday, friends, settings } = userInfo
-        if (user_id == id) {
-            return res.json({
-                ...statusResponse.OK,
-                data: {
-                    username,
-                    email,
-                    birthday,
-                    friends,
-                    settings
-                }
-            })
-        } else {
-            return res.json({
-                ...statusResponse.OK,
-                data: {
-                    username,
-                    email,
-                    birthday,
-                    friends,
-                    settings
-                }
-            })
-        }
+        const userInfo = await userModel.findById(user_id).select("username avatar email birthday friends");
+        if (!userInfo) return res.json(statusResponse.NOT_FOUND)
+        return res.json({
+            ...statusResponse.OK,
+            data: userInfo
+        })
     } catch (error) {
-        if (error) {
-            res.json('unknown error')
-        } else {
-            res.json('unknown error')
-        }
+        res.json(statusResponse.UNKNOWN)
     }
 }
 
@@ -109,11 +86,33 @@ const updateInfoUser = async (req, res) => {
 }
 
 
+const uploadAvatar = async (req, res) => {
+    const { id } = req.decoded
+    try {
+        var result = await streamUpload(req)
+        await userModel.findByIdAndUpdate(id, {
+            $set: {
+                avatar: result?.secure_url
+            }
+        })
+        res.json({
+            ...statusResponse.OK,
+            data: {
+                avatar: result?.secure_url
+            }
+        })
+    }
+    catch (error) {
+        console.log(error)
+        res.json(statusResponse.UNKNOWN)
+    }
+}
 
 module.exports = {
     signup,
     getInfoUser,
     getAllUsers,
     deleteUser,
-    updateInfoUser
+    updateInfoUser,
+    uploadAvatar
 }
