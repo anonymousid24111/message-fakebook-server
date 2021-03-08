@@ -25,7 +25,7 @@ const getInfoUser = async (req, res) => {
     const { id } = req.decoded
     try {
         if (!user_id) return res.json(statusResponse.PARAMS_MISS)
-        const userInfo = await userModel.findById(user_id).select("username avatar email birthday friends");
+        const userInfo = await userModel.findById(user_id).select("username cover_image avatar email birthday friends");
         if (!userInfo) return res.json(statusResponse.NOT_FOUND)
         return res.json({
             ...statusResponse.OK,
@@ -108,11 +108,34 @@ const uploadAvatar = async (req, res) => {
     }
 }
 
+const uploadCoverImage = async (req, res) => {
+    const { id } = req.decoded
+    try {
+        var result = await streamUpload(req)
+        await userModel.findByIdAndUpdate(id, {
+            $set: {
+                cover_image: result?.secure_url
+            }
+        })
+        res.json({
+            ...statusResponse.OK,
+            data: {
+                cover_image: result?.secure_url
+            }
+        })
+    }
+    catch (error) {
+        console.log(error)
+        res.json(statusResponse.UNKNOWN)
+    }
+}
+
 module.exports = {
     signup,
     getInfoUser,
     getAllUsers,
     deleteUser,
     updateInfoUser,
-    uploadAvatar
+    uploadAvatar,
+    uploadCoverImage
 }

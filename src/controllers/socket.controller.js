@@ -1,4 +1,4 @@
-const { RECEIVE_MESSAGE, NEW_CONVERSATION } = require('../commons/socketEvents');
+const { RECEIVE_MESSAGE, NEW_CONVERSATION, TYPING } = require('../commons/socketEvents');
 const conversationModel = require('../models/conversation.model')
 const userModel = require('../models/user.model')
 const join = (io, socket, data) => {
@@ -9,6 +9,14 @@ const join = (io, socket, data) => {
 const outRoom = (io, socket, data) => {
     console.log(`${socket.id} out ${data}`);
     socket.leave(data);
+}
+
+
+const typing = (io, socket, data) => {
+    console.log('data.conversationId', socket.id, data.sender, data.typing, data.conversationId)
+    socket.to(data.conversationId).emit(TYPING, data)
+
+    // socket.leave(data);
 }
 
 const sendMessage = async (io, socket, { message = {}, conversationId = "", receiver, sender }) => {
@@ -90,8 +98,11 @@ const sendMessage = async (io, socket, { message = {}, conversationId = "", rece
     }
 }
 
+
+
 module.exports = {
     join,
     sendMessage,
-    outRoom
+    outRoom,
+    typing
 }

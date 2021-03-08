@@ -19,5 +19,6 @@ router.put('/:user_id', authMiddleware.isAuth, userController.updateInfoUser)
 
 router.delete('/:user_id', authMiddleware.isAuth, userController.deleteUser)
 router.post('/upload_avatar', authMiddleware.isAuth, upload.single('avatar'), userController.uploadAvatar)
+router.post('/upload_cover_image', authMiddleware.isAuth, upload.single('cover_image'), userController.uploadCoverImage)
 
 module.exports = router

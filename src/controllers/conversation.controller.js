@@ -114,7 +114,7 @@ const getConversation = async (req, res) => {
                 "last_message.is_read": 1
             }
         })
-        console.log('result', result)
+        // console.log('result', result)
     } catch (error) {
         console.log(error?.message)
         res.json(statusResponse.UNKNOWN)
@@ -142,7 +142,7 @@ const getLastConversation = async (req, res) => {
             },
             limit: 1
         })
-        console.log(conversations)
+        // console.log(conversations)
         res.json({
             ...statusResponse.OK,
             data: conversations
