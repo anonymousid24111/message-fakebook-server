@@ -60,12 +60,14 @@ const getAllConversation = async (req, res) => {
 
         })
 
-        return res.json({
+        res.json({
             ...statusResponse.OK,
             data: [
                 ...conversations
             ]
         })
+
+        
     } catch (error) {
         res.json(statusResponse.UNKNOWN)
     }
@@ -103,21 +105,10 @@ const getConversation = async (req, res) => {
                 conversations: conversationsJson
             }
         })
-
-        const result = await conversationModel.findOneAndUpdate({
-            _id: conversationsJson?._id,
-            "last_message.sender": {
-                $ne: id
-            }
-        }, {
-            $set: {
-                "last_message.is_read": 1
-            }
-        })
         // console.log('result', result)
     } catch (error) {
         console.log(error?.message)
-        res.json(statusResponse.UNKNOWN)
+        // res.json(statusResponse.UNKNOWN)
     }
 }
 

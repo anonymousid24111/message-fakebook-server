@@ -1,15 +1,91 @@
-const { RECEIVE_MESSAGE, NEW_CONVERSATION, TYPING } = require('../commons/socketEvents');
+const { RECEIVE_MESSAGE, NEW_CONVERSATION, TYPING, ISREAD, RECEIVED } = require('../commons/socketEvents');
 const conversationModel = require('../models/conversation.model')
 const userModel = require('../models/user.model')
-const join = (io, socket, data) => {
-    console.log(`${socket.id} joining ${data}`);
-    socket.join(data);
+const join = async (io, socket, { conversationId, userId, members }) => {
+    if (conversationId) {
+        // join conversation as set read status for conversation
+        var conversationInfo = await conversationModel.findOneAndUpdate({
+            _id: conversationId,
+            "last_message.sender": {
+                $ne: userId
+            },
+            "last_message.is_read": {
+                $ne: 2
+            }
+        }, {
+            $set: {
+                "last_message.is_read": 2,
+                "messages.$[].status": "read"
+            }
+        })
+        console.log('conversationInfo', conversationInfo?.members, conversationId, userId, members)
+        socket.join(conversationId);
+        members.map(element => {
+            console.log('element', element)
+            socket.to(element).emit(ISREAD, {
+                userId,
+                conversationId
+            })
+        });
+
+    } else {
+        // join by user id as set received all of conversation what have sender of last message not user id 
+        userId && socket.join(userId);
+        await conversationModel.updateMany({
+            members: {
+                $in: [userId]
+            },
+            "last_message.sender": {
+                $ne: userId
+            },
+            "last_message.is_read": 0
+        }, {
+            "$set": {
+                "last_message.is_read": 1,
+                "messages.$[].status": "received"
+            },
+        })
+        // io.to()
+    }
 }
+
+const isRead = (io, socket, { conversationId, userId, members }) => {
+    
+    // members.map(element => {
+    //     console.log('element', element)
+    //     io.to(element).emit(ISREAD, {
+    //         userId,
+    //         conversationId
+    //     })
+    // });
+}
+
+
 
 const outRoom = (io, socket, data) => {
     console.log(`${socket.id} out ${data}`);
     socket.leave(data);
 }
+
+const receivedMessage = async (io, socket, { conversationId, userId }) => {
+    await conversationModel.findOneAndUpdate({
+        _id: conversationId,
+        "last_message.sender": userId,
+        "last_message.is_read": 0
+    }, {
+        "$set": {
+            "last_message.is_read": 1,
+            "messages.$[].status": "received"
+        },
+    })
+
+    socket.to(userId).emit(RECEIVED, {
+        userId,
+        conversationId
+    })
+}
+
+
 
 
 const typing = (io, socket, data) => {
@@ -86,11 +162,7 @@ const sendMessage = async (io, socket, { message = {}, conversationId = "", rece
                     }
                 }), newConversation.save()])
             }
-            io.to(receiver).emit(NEW_CONVERSATION, {
-                ...message,
-                sender,
-                conversationId
-            })
+            io.to(receiver).to(sender).emit(NEW_CONVERSATION, newConversation)
         }
 
     } catch (error) {
@@ -104,5 +176,7 @@ module.exports = {
     join,
     sendMessage,
     outRoom,
-    typing
+    typing,
+    receivedMessage,
+    isRead
 }

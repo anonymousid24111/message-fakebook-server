@@ -1,4 +1,4 @@
-const { SEND_MESSAGE, JOIN, OUT_ROOM, TYPING } = require('../commons/socketEvents');
+const { SEND_MESSAGE, JOIN, OUT_ROOM, TYPING, RECEIVED, ISREAD } = require('../commons/socketEvents');
 const socketController = require('../controllers/socket.controller')
 
 const socketRoute = (io, socket) => {
@@ -8,5 +8,7 @@ const socketRoute = (io, socket) => {
     socket.on(OUT_ROOM, data => socketController.outRoom(io, socket, data));
     socket.on(SEND_MESSAGE, data => socketController.sendMessage(io, socket, data));
     socket.on(TYPING, data => socketController.typing(io, socket, data));
+    socket.on(RECEIVED, data => socketController.receivedMessage(io, socket, data));
+    socket.on(ISREAD, data => socketController.isRead(io, socket, data));
 }
 module.exports = socketRoute

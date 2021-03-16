@@ -5,7 +5,7 @@ const conversationSchema = new mongoose.Schema({
   last_message: {
     is_read: {
       type: Number,
-      default: 1
+      default: 2 // 0 da gui chua nhan 1 da gui da nhan chua doc 2 da gui da nhan da doc
     },
     kind: String,
     content: String,
@@ -19,7 +19,10 @@ const conversationSchema = new mongoose.Schema({
   messages: [{
     kind: String,
     content: String,
-    status: String,
+    status: {
+      type: String,
+      default: "sent"
+    },
     created: Date,
     sender: { type: Schema.Types.ObjectId, ref: 'user' },
   }],
