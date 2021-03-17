@@ -50,7 +50,7 @@ const join = async (io, socket, { conversationId, userId, members }) => {
 }
 
 const isRead = (io, socket, { conversationId, userId, members }) => {
-    
+
     // members.map(element => {
     //     console.log('element', element)
     //     io.to(element).emit(ISREAD, {
@@ -70,7 +70,9 @@ const outRoom = (io, socket, data) => {
 const receivedMessage = async (io, socket, { conversationId, userId }) => {
     await conversationModel.findOneAndUpdate({
         _id: conversationId,
-        "last_message.sender": userId,
+        "last_message.sender": {
+            $ne: userId
+        },
         "last_message.is_read": 0
     }, {
         "$set": {

@@ -64,13 +64,16 @@ const deleteUser = async (req, res) => {
 }
 
 const updateInfoUser = async (req, res) => {
-    const { id } = req.params
-    const { username, phonenumber } = req.body;
+    const { user_id } = req.params
+    const { username, phonenumber, email, birthday } = req.body;
     try {
-        let userInfo = await userModel.findById(id)
+        let userInfo = await userModel.findById(user_id)
         if (userInfo) {
-            userInfo.username = username;
-            userInfo.phonenumber = phonenumber;
+            console.log(`req.body`, req.body)
+            username && (userInfo.username = username);
+            email && (userInfo.email = email);
+            phonenumber && (userInfo.phonenumber = phonenumber);
+            birthday && (userInfo.birthday = birthday);
             await userInfo.save()
             res.json(userInfo)
         } else {
