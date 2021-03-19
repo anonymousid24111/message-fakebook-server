@@ -2,6 +2,7 @@ const { RECEIVE_MESSAGE, NEW_CONVERSATION, TYPING, ISREAD, RECEIVED } = require(
 const conversationModel = require('../models/conversation.model')
 const userModel = require('../models/user.model')
 const join = async (io, socket, { conversationId, userId, members }) => {
+    console.log("join", userId, conversationId)
     if (conversationId) {
         // join conversation as set read status for conversation
         var conversationInfo = await conversationModel.findOneAndUpdate({
@@ -18,11 +19,11 @@ const join = async (io, socket, { conversationId, userId, members }) => {
                 "messages.$[].status": "read"
             }
         })
-        console.log('conversationInfo', conversationInfo?.members, conversationId, userId, members)
+        // console.log('conversationInfo', conversationInfo?.members, conversationId, userId, members)
         socket.join(conversationId);
         members.map(element => {
-            console.log('element', element)
-            socket.to(element).emit(ISREAD, {
+            // console.log('element', element)
+            io.to(element).emit(ISREAD, {
                 userId,
                 conversationId
             })
@@ -49,15 +50,34 @@ const join = async (io, socket, { conversationId, userId, members }) => {
     }
 }
 
-const isRead = (io, socket, { conversationId, userId, members }) => {
-
+const isRead = async (io, socket, { conversationId, userId, receiverId }) => {
+    await conversationModel.findOneAndUpdate({
+        _id: conversationId,
+        "last_message.sender": {
+            $ne: userId
+        },
+        "last_message.is_read": {
+            $ne: 2
+        }
+    }, {
+        "$set": {
+            "last_message.is_read": 2,
+            "messages.$[].status": "read"
+        },
+    })
     // members.map(element => {
-    //     console.log('element', element)
-    //     io.to(element).emit(ISREAD, {
+    //     console.log('isread', element)
+    //     socket.to(element).emit(ISREAD, {
     //         userId,
     //         conversationId
     //     })
     // });
+    console.log("read", conversationId, userId, receiverId)
+    io.to(receiverId).to(userId).emit(ISREAD, {
+        senderId: userId,
+        userId,
+        conversationId
+    })
 }
 
 
@@ -67,8 +87,8 @@ const outRoom = (io, socket, data) => {
     socket.leave(data);
 }
 
-const receivedMessage = async (io, socket, { conversationId, userId }) => {
-    await conversationModel.findOneAndUpdate({
+const receivedMessage = async (io, socket, { conversationId, userId, receiverId }) => {
+    const result = await conversationModel.findOneAndUpdate({
         _id: conversationId,
         "last_message.sender": {
             $ne: userId
@@ -80,8 +100,7 @@ const receivedMessage = async (io, socket, { conversationId, userId }) => {
             "messages.$[].status": "received"
         },
     })
-
-    socket.to(userId).emit(RECEIVED, {
+    io.to(receiverId).emit(RECEIVED, {
         userId,
         conversationId
     })
@@ -91,14 +110,14 @@ const receivedMessage = async (io, socket, { conversationId, userId }) => {
 
 
 const typing = (io, socket, data) => {
-    console.log('data.conversationId', socket.id, data.sender, data.typing, data.conversationId)
+    // console.log('data.conversationId', socket.id, data.sender, data.typing, data.conversationId)
     socket.to(data.conversationId).emit(TYPING, data)
 
     // socket.leave(data);
 }
 
 const sendMessage = async (io, socket, { message = {}, conversationId = "", receiver, sender }) => {
-    console.log(socket.id, "emit event send")
+    console.log("send mes", sender)
     try {
         if (conversationId) {
             let created = Date.now()
@@ -106,6 +125,7 @@ const sendMessage = async (io, socket, { message = {}, conversationId = "", rece
                 $push: {
                     messages: {
                         ...message,
+                        status: "sent",
                         sender,
                         created
                     }
@@ -122,7 +142,7 @@ const sendMessage = async (io, socket, { message = {}, conversationId = "", rece
                 path: "members",
                 select: "avatar username email"
             })
-            console.log("receiver", receiver)
+            // console.log("receiver", receiver)
 
             socket.to(conversationId).emit(RECEIVE_MESSAGE, {
                 ...message,

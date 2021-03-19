@@ -8,6 +8,7 @@ router.use(authMiddleware.isAuth)
 router.post('/', conversationController.createConversation)
 
 router.get('/', conversationController.getAllConversation)
+router.get('/get_all_medias', conversationController.getAllMedias)
 
 router.get('/get_last_conversation', conversationController.getLastConversation)
 router.get('/:user_id', conversationController.getConversation)

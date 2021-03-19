@@ -67,7 +67,7 @@ const getAllConversation = async (req, res) => {
             ]
         })
 
-        
+
     } catch (error) {
         res.json(statusResponse.UNKNOWN)
     }
@@ -144,10 +144,26 @@ const getLastConversation = async (req, res) => {
 }
 
 
+const getAllMedias = async (req, res) => {
+    const { conversationId } = req.query
+    try {
+        const { messages } = await conversationModel.findById(conversationId)
+        // console.log(`messages`, messages.filter(x => x.kind === "images"))
+        res.json({
+            ...statusResponse.OK,
+            data: messages.filter(x => x.kind === "images")
+        })
+    }
+    catch (error) {
+        res.json(statusResponse.UNKNOWN)
+    }
+}
+
 module.exports = {
     createConversation,
     getAllConversation,
     getConversation,
     deleteConversation,
-    getLastConversation
+    getLastConversation,
+    getAllMedias
 }

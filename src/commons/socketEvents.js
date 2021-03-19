@@ -6,6 +6,7 @@ const NEW_CONVERSATION = 'NEW_CONVERSATION'
 const TYPING = 'TYPING'
 const ISREAD = 'ISREAD'
 const RECEIVED = 'RECEIVED'
+const USER_ONLINE = 'USER_ONLINE'
 module.exports = {
     JOIN,
     RECEIVE_MESSAGE,
@@ -14,5 +15,6 @@ module.exports = {
     NEW_CONVERSATION,
     TYPING,
     ISREAD,
-    RECEIVED
+    RECEIVED,
+    USER_ONLINE
 }

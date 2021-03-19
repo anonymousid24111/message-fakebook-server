@@ -9,8 +9,8 @@ const searchUser = async (req, res) => {
             const [othersInfo, meInfo] = await Promise.all([userModel.find().select('username avatar email is_friend same_friends'), userModel.findById(id)])
             // const results = await 
             // console.log("res:",results)
-            for(let i=0; i<othersInfo.length;i+=1){
-                othersInfo[i]["is_friend"]= meInfo.friends.includes(othersInfo[i]._id)
+            for (let i = 0; i < othersInfo.length; i += 1) {
+                othersInfo[i]["is_friend"] = meInfo.friends.includes(othersInfo[i]._id)
             }
             // console.log(othersInfo)
             return res.json({
@@ -27,7 +27,7 @@ const searchUser = async (req, res) => {
                 { email: new RegExp(keyword, "i") },
                 { email: new RegExp(keyword.replace(" ", "|"), "i") }
             ]
-        }).select('username email')
+        }).select('username email avatar is_friend same_friends')
         return res.json({
             ...statusResponse.OK,
             data: results
