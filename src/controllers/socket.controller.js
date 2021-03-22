@@ -119,8 +119,8 @@ const typing = (io, socket, data) => {
 const sendMessage = async (io, socket, { message = {}, conversationId = "", receiver, sender }) => {
     console.log("send mes", sender)
     try {
+        let created = Date.now()
         if (conversationId) {
-            let created = Date.now()
             const newConversation = await conversationModel.findByIdAndUpdate(conversationId, {
                 $push: {
                     messages: {
@@ -159,11 +159,17 @@ const sendMessage = async (io, socket, { message = {}, conversationId = "", rece
                     sender,
                     receiver
                 ],
+                last_message: {
+                    ...message,
+                    is_read: 0,
+                    sender,
+                    created
+                },
                 messages: [
                     {
                         ...message,
                         sender,
-                        created: Date()
+                        created
                     }
                 ]
             })
@@ -184,7 +190,13 @@ const sendMessage = async (io, socket, { message = {}, conversationId = "", rece
                     }
                 }), newConversation.save()])
             }
-            io.to(receiver).to(sender).emit(NEW_CONVERSATION, newConversation)
+
+            const resNewConversation = await conversationModel.findById(newConversation._id).populate({
+                path: "members",
+                select: "avatar username email"
+            })
+
+            io.to(receiver).to(sender).emit(NEW_CONVERSATION, resNewConversation)
         }
 
     } catch (error) {
