@@ -1,4 +1,4 @@
-const { SEND_MESSAGE, JOIN, OUT_ROOM, TYPING, RECEIVED, ISREAD, USER_ONLINE } = require('../commons/socketEvents');
+const { SEND_MESSAGE, JOIN, OUT_ROOM, TYPING, RECEIVED, ISREAD, USER_ONLINE, CALL_VIDEO } = require('../commons/socketEvents');
 const socketController = require('../controllers/socket.controller')
 
 const socketRoute = (io, socket) => {
@@ -11,6 +11,8 @@ const socketRoute = (io, socket) => {
     socket.on(TYPING, data => socketController.typing(io, socket, data));
     socket.on(RECEIVED, data => socketController.receivedMessage(io, socket, data));
     socket.on(ISREAD, data => socketController.isRead(io, socket, data));
+    socket.on(CALL_VIDEO, data => socketController.callVideo(io, socket, data));
+
     socket.on(USER_ONLINE, () => socket.emit(USER_ONLINE, Array.from(io.sockets.adapter.rooms.keys())))
     // console.log(`io.sockets.adapter.rooms`, Array.from(io.sockets.adapter.rooms.keys()))
 }
