@@ -1,5 +1,6 @@
-const { RECEIVE_MESSAGE, NEW_CONVERSATION, TYPING, ISREAD, RECEIVED } = require('../commons/socketEvents');
-const conversationModel = require('../models/conversation.model')
+const { RECEIVE_MESSAGE, NEW_CONVERSATION, TYPING, ISREAD, RECEIVED, CALL_VIDEO } = require('../commons/socketEvents');
+const conversationModel = require('../models/conversation.model');
+const User = require('../models/user.model');
 const userModel = require('../models/user.model')
 const join = async (io, socket, { conversationId, userId, members }) => {
     console.log("join", userId, conversationId)
@@ -202,6 +203,15 @@ const sendMessage = async (io, socket, { message = {}, conversationId = "", rece
     } catch (error) {
         console.log(error)
     }
+}
+
+
+const callVideo =async (io, socket, {userId, linkVideoCall, senderId}) => {
+    const userInfo = await User.findById(senderId).select("username avatar")
+    io.to(userId).emit(CALL_VIDEO, {
+        sender: userInfo,
+        linkVideoCall,
+    })
 }
 
 

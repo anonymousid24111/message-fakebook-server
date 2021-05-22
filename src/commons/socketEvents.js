@@ -7,6 +7,8 @@ const TYPING = 'TYPING'
 const ISREAD = 'ISREAD'
 const RECEIVED = 'RECEIVED'
 const USER_ONLINE = 'USER_ONLINE'
+const CALL_VIDEO = 'CALL_VIDEO'
+
 module.exports = {
     JOIN,
     RECEIVE_MESSAGE,
@@ -16,5 +18,6 @@ module.exports = {
     TYPING,
     ISREAD,
     RECEIVED,
-    USER_ONLINE
+    USER_ONLINE,
+    CALL_VIDEO
 }
